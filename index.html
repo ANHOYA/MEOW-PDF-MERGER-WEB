@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEOW PDF MERGER 🐱</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans antialiased">
+
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Header -->
+    <header class="text-center mb-12">
+      <h1
+        class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent mb-3">
+        MEOW PDF MERGER 🐱
+      </h1>
+      <p class="text-slate-400 text-lg">
+        단면 스캔 PDF를 완벽한 양면 문서로 병합하세요
+      </p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="grid lg:grid-cols-[320px_1fr] gap-8">
+
+      <!-- Left Panel: Controls -->
+      <aside class="space-y-6">
+        <!-- Odd PDF Drop Zone -->
+        <div id="drop-odd"
+          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-cyan-400 bg-slate-800/50 backdrop-blur p-6 cursor-pointer transition-all duration-300">
+          <input type="file" id="input-odd" accept=".pdf" class="hidden" />
+          <div class="text-center">
+            <div
+              class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <p class="font-semibold text-white mb-1">홀수 페이지 PDF</p>
+            <p id="odd-filename" class="text-sm text-slate-400 truncate">드래그하거나 클릭하세요</p>
+          </div>
+          <div class="drop-highlight absolute inset-0 bg-cyan-500/10 opacity-0 pointer-events-none transition-opacity">
+          </div>
+        </div>
+
+        <!-- Even PDF Drop Zone -->
+        <div id="drop-even"
+          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-purple-400 bg-slate-800/50 backdrop-blur p-6 cursor-pointer transition-all duration-300">
+          <input type="file" id="input-even" accept=".pdf" class="hidden" />
+          <div class="text-center">
+            <div
+              class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <p class="font-semibold text-white mb-1">짝수 페이지 PDF (역순)</p>
+            <p id="even-filename" class="text-sm text-slate-400 truncate">드래그하거나 클릭하세요</p>
+          </div>
+          <div
+            class="drop-highlight absolute inset-0 bg-purple-500/10 opacity-0 pointer-events-none transition-opacity">
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3 pt-4">
+          <button id="btn-swap"
+            class="w-full py-3 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+            홀짝 파일 바꾸기
+          </button>
+
+          <button id="btn-merge"
+            class="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-lg transition-all duration-200 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            disabled>
+            🐱 병합 후 저장
+          </button>
+        </div>
+
+        <!-- Info Box -->
+        <div class="rounded-xl bg-slate-800/50 border border-slate-700 p-4 text-sm text-slate-400">
+          <p class="flex items-start gap-2">
+            <span class="text-yellow-400">💡</span>
+            <span>짝수 페이지 PDF는 <strong class="text-white">역순</strong>으로 스캔된 상태로 가정합니다.</span>
+          </p>
+        </div>
+      </aside>
+
+      <!-- Right Panel: Preview -->
+      <section class="min-h-[400px] min-w-0 overflow-hidden rounded-2xl bg-slate-800/30 border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-slate-300 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          미리보기
+        </h2>
+
+        <!-- Empty State -->
+        <div id="preview-empty" class="flex flex-col items-center justify-center h-64 text-slate-500">
+          <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p>PDF 파일을 선택하면 미리보기가 표시됩니다</p>
+        </div>
+
+        <!-- Preview Container -->
+        <div id="preview-container" class="hidden overflow-hidden">
+          <div id="preview-scroll" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+            <!-- Thumbnails will be inserted here -->
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="preview-loading" class="hidden flex flex-col items-center justify-center h-64">
+          <div class="w-12 h-12 border-4 border-slate-600 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
+          <p class="text-slate-400">미리보기 생성 중...</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-sm text-slate-500">
+      <p>모든 PDF 처리는 브라우저에서 수행됩니다. 파일이 서버로 전송되지 않습니다. 🔒</p>
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

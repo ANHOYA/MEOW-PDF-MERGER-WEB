@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+
+# Build
+dist/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Test Files
+*.pdf
