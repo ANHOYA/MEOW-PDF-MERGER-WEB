@@ -1,6 +1,7 @@
 import './style.css';
 import { mergePdfs, downloadPdf } from './pdfMerger.js';
 import { renderPreview, getPageCount } from './pdfPreview.js';
+import { translations, getCurrentLang, setLang, t, applyTranslations, initI18n } from './i18n.js';
 
 // ─── State ───────────────────────────────────────────────
 let oddFile = null;   // { name: string, bytes: ArrayBuffer }
@@ -188,3 +189,73 @@ document.querySelectorAll('.modal-close').forEach(btn => {
         if (e.target === modal) modal.close();
     });
 });
+
+// ─── i18n Setup ──────────────────────────────────────────
+const langToggle = document.getElementById('lang-toggle');
+const termsContent = document.getElementById('terms-content');
+const privacyContent = document.getElementById('privacy-content');
+
+function renderModalContent() {
+    const lang = getCurrentLang();
+    const terms = translations[lang].termsContent;
+    const privacy = translations[lang].privacyContent;
+
+    if (termsContent) {
+        termsContent.innerHTML = `
+            <h3 class="text-white font-semibold">${terms.section1Title}</h3>
+            <p>${terms.section1Text}</p>
+            
+            <h3 class="text-white font-semibold">${terms.section2Title}</h3>
+            <ul class="list-disc list-inside space-y-1">
+                ${terms.section2Items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+            
+            <h3 class="text-white font-semibold">${terms.section3Title}</h3>
+            <ul class="list-disc list-inside space-y-1">
+                ${terms.section3Items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+            
+            <h3 class="text-white font-semibold">${terms.section4Title}</h3>
+            <p>${terms.section4Text}</p>
+            
+            <h3 class="text-white font-semibold">${terms.section5Title}</h3>
+            <p>${terms.section5Text}</p>
+        `;
+    }
+
+    if (privacyContent) {
+        privacyContent.innerHTML = `
+            <h3 class="text-white font-semibold">${privacy.section1Title}</h3>
+            <p><strong class="text-green-400">${privacy.section1Highlight}</strong></p>
+            <p>${privacy.section1Text}</p>
+            
+            <h3 class="text-white font-semibold">${privacy.section2Title}</h3>
+            <ul class="list-disc list-inside space-y-1">
+                <li>${privacy.section2Items[0]}<strong class="text-cyan-400">${privacy.section2Items[1]}</strong>${privacy.section2Items[2]}</li>
+                <li>${privacy.section2Items[3]}</li>
+                <li>${privacy.section2Items[4]}</li>
+            </ul>
+            
+            <h3 class="text-white font-semibold">${privacy.section3Title}</h3>
+            <ul class="list-disc list-inside space-y-1">
+                ${privacy.section3Items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+            
+            <h3 class="text-white font-semibold">${privacy.section4Title}</h3>
+            <p>${privacy.section4Text}</p>
+            
+            <h3 class="text-white font-semibold">${privacy.section5Title}</h3>
+            <p>${privacy.section5Text}</p>
+        `;
+    }
+}
+
+langToggle?.addEventListener('click', () => {
+    const newLang = getCurrentLang() === 'en' ? 'ko' : 'en';
+    setLang(newLang);
+    renderModalContent();
+});
+
+// Initialize i18n
+initI18n();
+renderModalContent();
