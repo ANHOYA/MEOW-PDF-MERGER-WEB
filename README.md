@@ -6,7 +6,7 @@ MEOW PDF MERGER는 단면 스캔만 지원하는 스캐너(ADF) 사용자를 위
 **100% 클라이언트 사이드** - 모든 PDF 처리가 브라우저에서 수행되어 파일이 서버로 전송되지 않습니다. 🔒
 
 <div align="center">
-<img width="100%" alt="MEOW PDF MERGER Web UI" src="screenshot.png" />
+<img width="100%" alt="MEOW PDF MERGER Web UI" src="public/screenshot.png" />
 </div>
 
 ---
