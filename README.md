@@ -26,7 +26,7 @@ MEOW PDF MERGER는 단면 스캔만 지원하는 스캐너(ADF) 사용자를 위
 ## 🚀 빠른 시작
 
 ### 온라인 사용
-> 🌐 [GitHub Pages에서 바로 사용하기](https://anhoya.github.io/MEOW-PDF-MERGER-WEB/)
+> 🌐 [바로 사용하기](https://meow-pdf-merger-web.vercel.app/)
 
 ### 로컬 실행
 ```bash

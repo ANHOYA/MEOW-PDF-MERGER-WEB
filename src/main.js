@@ -165,3 +165,26 @@ btnMerge.addEventListener('click', mergeAndSave);
 // 전역 드래그 방지 (윈도우에 드롭 시 브라우저가 파일 열지 않도록)
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => e.preventDefault());
+
+// ─── Modal Handlers ──────────────────────────────────────
+const modalTerms = document.getElementById('modal-terms');
+const modalPrivacy = document.getElementById('modal-privacy');
+const btnTerms = document.getElementById('btn-terms');
+const btnPrivacy = document.getElementById('btn-privacy');
+
+btnTerms?.addEventListener('click', () => modalTerms.showModal());
+btnPrivacy?.addEventListener('click', () => modalPrivacy.showModal());
+
+// 닫기 버튼 및 배경 클릭으로 닫기
+document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        modalTerms.close();
+        modalPrivacy.close();
+    });
+});
+
+[modalTerms, modalPrivacy].forEach(modal => {
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) modal.close();
+    });
+});
