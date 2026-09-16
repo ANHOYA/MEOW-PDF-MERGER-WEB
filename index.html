@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial=1.0" />
   <title>MEOW PDF MERGER 🐱 - Merge Single-Sided PDF Scans</title>
 
-  <!-- SEO Meta Tags -->
   <meta name="description"
     content="Merge single-sided PDF scans into perfect double-sided documents. 100% client-side processing - files never leave your browser. Free, fast, and secure.">
   <meta name="keywords"
@@ -15,7 +14,6 @@
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://meow-pdf-merger-web.vercel.app/">
 
-  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://meow-pdf-merger-web.vercel.app/">
   <meta property="og:title" content="MEOW PDF MERGER 🐱 - Merge Single-Sided PDF Scans">
@@ -27,7 +25,6 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="MEOW PDF MERGER">
 
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://meow-pdf-merger-web.vercel.app/">
   <meta name="twitter:title" content="MEOW PDF MERGER 🐱 - Merge Single-Sided PDF Scans">
@@ -35,32 +32,12 @@
     content="Merge single-sided PDF scans into perfect double-sided documents. 100% client-side processing.">
   <meta name="twitter:image" content="https://meow-pdf-merger-web.vercel.app/og-image.png">
 
-  <!-- Theme Color -->
   <meta name="theme-color" content="#0f172a">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css" />
-  <!-- Google Tag Manager -->
-  <script>(function (w, d, s, l, i) {
-      w[l] = w[l] || []; w[l].push({
-        'gtm.start':
-          new Date().getTime(), event: 'gtm.js'
-      }); var f = d.getElementsByTagName(s)[0],
-        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', 'GTM-5JGGRX2H');</script>
-  <!-- End Google Tag Manager -->
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans antialiased">
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5JGGRX2H" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-
-  <!-- Language Toggle -->
   <div class="absolute top-4 right-4 z-50">
     <button id="lang-toggle"
       class="px-3 py-1.5 text-sm font-medium bg-slate-700/80 hover:bg-slate-600 rounded-lg border border-slate-600 transition-colors backdrop-blur">
@@ -68,9 +45,8 @@
     </button>
   </div>
 
-  <div class="container mx-auto px-4 py-8 max-w-7xl">
-    <!-- Header -->
-    <header class="text-center mb-12">
+  <div class="container mx-auto px-4 py-4 max-w-7xl">
+    <header class="text-center mb-5">
       <h1
         class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent mb-3">
         MEOW PDF MERGER 🐱
@@ -80,18 +56,15 @@
       </p>
     </header>
 
-    <!-- Main Content -->
     <main class="grid lg:grid-cols-[320px_1fr] gap-8">
 
-      <!-- Left Panel: Controls -->
-      <aside class="space-y-6">
-        <!-- Odd PDF Drop Zone -->
-        <div id="drop-odd"
-          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-cyan-400 bg-slate-800/50 backdrop-blur p-6 cursor-pointer transition-all duration-300">
+      <aside class="space-y-4">
+        <div id="drop-odd" role="button" tabindex="0" aria-controls="input-odd"
+          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-cyan-400 bg-slate-800/50 backdrop-blur p-3 cursor-pointer transition-all duration-300">
           <input type="file" id="input-odd" accept=".pdf" class="hidden" />
           <div class="text-center">
             <div
-              class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              class="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -105,13 +78,12 @@
           </div>
         </div>
 
-        <!-- Even PDF Drop Zone -->
-        <div id="drop-even"
-          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-purple-400 bg-slate-800/50 backdrop-blur p-6 cursor-pointer transition-all duration-300">
+        <div id="drop-even" role="button" tabindex="0" aria-controls="input-even"
+          class="drop-zone group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-600 hover:border-purple-400 bg-slate-800/50 backdrop-blur p-3 cursor-pointer transition-all duration-300">
           <input type="file" id="input-even" accept=".pdf" class="hidden" />
           <div class="text-center">
             <div
-              class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              class="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
               <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -126,8 +98,22 @@
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="space-y-3 pt-4">
+        <fieldset class="rounded-xl bg-slate-800/50 border border-slate-700 p-3 space-y-2">
+          <legend class="px-1 text-sm font-semibold text-slate-200" data-i18n="options">Back-side options</legend>
+          <label for="even-order" class="block text-xs font-medium text-slate-400" data-i18n="orderLabel">Page order</label>
+          <select id="even-order"
+            class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30">
+            <option value="reverse" data-i18n="reverseOrder">Reverse (typical ADF scan)</option>
+            <option value="forward" data-i18n="forwardOrder">Forward</option>
+          </select>
+          <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-300">
+            <input id="rotate-even" type="checkbox"
+              class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-cyan-500 focus:ring-cyan-400">
+            <span data-i18n="rotateEven">Rotate back-side pages 180°</span>
+          </label>
+        </fieldset>
+
+        <div class="space-y-3">
           <button id="btn-swap"
             class="w-full py-3 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled>
@@ -141,21 +127,19 @@
           <button id="btn-merge"
             class="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-lg transition-all duration-200 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             disabled>
-            <span data-i18n="mergeAndSave">🐱 Merge & Save</span>
+            <span id="btn-merge-label" data-i18n="mergeAndSave">🐱 Merge & Save</span>
           </button>
         </div>
 
-        <!-- Info Box -->
         <div class="rounded-xl bg-slate-800/50 border border-slate-700 p-4 text-sm text-slate-400">
           <p class="flex items-start gap-2">
             <span class="text-yellow-400">💡</span>
-            <span><span data-i18n="infoTip">Even pages PDF is assumed to be scanned in </span><strong class="text-white"
-                data-i18n="infoReverse">reverse order</strong>.</span>
+            <span data-i18n="infoTipFull">Most ADF scans use reverse order. A final unmatched front page is supported.</span>
           </p>
         </div>
+        <p id="preview-status" class="hidden status-message" role="status" aria-live="polite"></p>
       </aside>
 
-      <!-- Right Panel: Preview -->
       <section class="min-h-[400px] min-w-0 overflow-hidden rounded-2xl bg-slate-800/30 border border-slate-700 p-6">
         <h2 class="text-lg font-semibold text-slate-300 mb-4 flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +151,6 @@
           <span data-i18n="preview">Preview</span>
         </h2>
 
-        <!-- Empty State -->
         <div id="preview-empty" class="flex flex-col items-center justify-center h-64 text-slate-500">
           <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -176,14 +159,11 @@
           <p data-i18n="previewEmpty">Select PDF files to see preview</p>
         </div>
 
-        <!-- Preview Container -->
         <div id="preview-container" class="hidden overflow-hidden">
           <div id="preview-scroll" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-            <!-- Thumbnails will be inserted here -->
           </div>
         </div>
 
-        <!-- Loading State -->
         <div id="preview-loading" class="hidden flex flex-col items-center justify-center h-64">
           <div class="w-12 h-12 border-4 border-slate-600 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
           <p class="text-slate-400" data-i18n="previewLoading">Generating preview...</p>
@@ -192,7 +172,6 @@
 
     </main>
 
-    <!-- Footer -->
     <footer class="mt-12 text-center text-sm text-slate-500 space-y-2">
       <p data-i18n="footerPrivacy">All PDF processing happens in your browser. Files are never uploaded to any server.
         🔒</p>
@@ -205,21 +184,19 @@
       </p>
       <p class="text-slate-600 text-xs">
         © 2026 MEOW PDF MERGER ·
-        <a href="https://github.com/ANHOYA" target="_blank"
+        <a href="https://github.com/ANHOYA" target="_blank" rel="noopener noreferrer"
           class="hover:text-slate-400 transition-colors">github.com/ANHOYA</a>
       </p>
     </footer>
   </div>
 
-  <!-- Terms of Service Modal -->
   <dialog id="modal-terms" class="bg-slate-800 text-white rounded-2xl p-0 max-w-2xl w-full backdrop:bg-black/70">
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold" data-i18n="termsTitle">📜 Terms of Service</h2>
-        <button class="modal-close text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+        <button class="modal-close text-slate-400 hover:text-white text-2xl leading-none" aria-label="Close">&times;</button>
       </div>
       <div id="terms-content" class="prose prose-invert prose-sm max-h-[60vh] overflow-y-auto text-slate-300 space-y-4">
-        <!-- Content will be dynamically inserted by i18n -->
       </div>
       <div class="mt-6 text-right">
         <button class="modal-close px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
@@ -228,16 +205,14 @@
     </div>
   </dialog>
 
-  <!-- Privacy Policy Modal -->
   <dialog id="modal-privacy" class="bg-slate-800 text-white rounded-2xl p-0 max-w-2xl w-full backdrop:bg-black/70">
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold" data-i18n="privacyTitle">🔒 Privacy Policy</h2>
-        <button class="modal-close text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+        <button class="modal-close text-slate-400 hover:text-white text-2xl leading-none" aria-label="Close">&times;</button>
       </div>
       <div id="privacy-content"
         class="prose prose-invert prose-sm max-h-[60vh] overflow-y-auto text-slate-300 space-y-4">
-        <!-- Content will be dynamically inserted by i18n -->
       </div>
       <div class="mt-6 text-right">
         <button class="modal-close px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"

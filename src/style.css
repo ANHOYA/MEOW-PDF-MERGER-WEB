@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   height: 8px;
   width: 8px;
@@ -22,24 +21,26 @@
   background: rgba(100, 116, 139, 0.7);
 }
 
-/* Drop zone animations */
 .drop-zone.drag-over {
   border-color: #22d3ee !important;
   transform: scale(1.02);
+}
+
+.drop-zone:focus-visible {
+  outline: 3px solid rgba(34, 211, 238, 0.65);
+  outline-offset: 3px;
 }
 
 .drop-zone.drag-over .drop-highlight {
   opacity: 1;
 }
 
-/* File loaded state */
 .drop-zone.has-file {
   border-style: solid;
   border-color: #22c55e;
   background-color: rgba(34, 197, 94, 0.1);
 }
 
-/* Preview thumbnail */
 .preview-thumb {
   @apply flex-shrink-0 snap-center rounded-lg overflow-hidden bg-white shadow-lg;
   min-width: 150px;
@@ -53,7 +54,6 @@
   @apply text-xs text-center py-2 bg-slate-100 text-slate-600 font-medium;
 }
 
-/* Button pulse animation */
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 10px 40px -10px rgba(6, 182, 212, 0.4);
@@ -65,4 +65,23 @@
 
 #btn-merge:not(:disabled) {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.status-message {
+  @apply rounded-xl border px-4 py-3 text-sm whitespace-pre-line;
+  color: #cbd5e1;
+  border-color: rgba(100, 116, 139, 0.5);
+  background: rgba(30, 41, 59, 0.55);
+}
+
+.status-message[data-tone="success"] {
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.status-message[data-tone="error"] {
+  color: #fca5a5;
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(127, 29, 29, 0.18);
 }

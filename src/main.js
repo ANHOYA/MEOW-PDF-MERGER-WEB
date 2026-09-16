@@ -1,261 +1,260 @@
 import './style.css';
 import { mergePdfs, downloadPdf } from './pdfMerger.js';
 import { renderPreview, getPageCount } from './pdfPreview.js';
-import { translations, getCurrentLang, setLang, t, applyTranslations, initI18n } from './i18n.js';
+import { translations, getCurrentLang, setLang, t, initI18n } from './i18n.js';
 
-// ─── State ───────────────────────────────────────────────
-let oddFile = null;   // { name: string, bytes: ArrayBuffer }
+let oddFile = null;
 let evenFile = null;
+let previewRevision = 0;
+let cachedMergedBytes = null;
+let filesAreValid = false;
 
-// ─── DOM Elements ────────────────────────────────────────
-const dropOdd = document.getElementById('drop-odd');
-const dropEven = document.getElementById('drop-even');
-const inputOdd = document.getElementById('input-odd');
-const inputEven = document.getElementById('input-even');
-const oddFilename = document.getElementById('odd-filename');
-const evenFilename = document.getElementById('even-filename');
-const btnSwap = document.getElementById('btn-swap');
-const btnMerge = document.getElementById('btn-merge');
-const previewEmpty = document.getElementById('preview-empty');
-const previewContainer = document.getElementById('preview-container');
-const previewScroll = document.getElementById('preview-scroll');
-const previewLoading = document.getElementById('preview-loading');
+const byId = (id) => document.getElementById(id);
+const dropOdd = byId('drop-odd');
+const dropEven = byId('drop-even');
+const inputOdd = byId('input-odd');
+const inputEven = byId('input-even');
+const oddFilename = byId('odd-filename');
+const evenFilename = byId('even-filename');
+const btnSwap = byId('btn-swap');
+const btnMerge = byId('btn-merge');
+const btnMergeLabel = byId('btn-merge-label');
+const previewEmpty = byId('preview-empty');
+const previewContainer = byId('preview-container');
+const previewScroll = byId('preview-scroll');
+const previewLoading = byId('preview-loading');
+const previewStatus = byId('preview-status');
+const evenOrder = byId('even-order');
+const rotateEven = byId('rotate-even');
 
-// ─── File Handling ───────────────────────────────────────
+function format(key, values = {}) {
+    return Object.entries(values).reduce(
+        (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
+        t(key)
+    );
+}
+
+function setStatus(message = '', tone = 'neutral') {
+    previewStatus.textContent = message;
+    previewStatus.dataset.tone = tone;
+    previewStatus.classList.toggle('hidden', !message);
+}
+
+function setPreviewState(state) {
+    previewEmpty.classList.toggle('hidden', state !== 'empty');
+    previewLoading.classList.toggle('hidden', state !== 'loading');
+    previewContainer.classList.toggle('hidden', state !== 'ready');
+}
+
+function updateButtons(processing = false) {
+    const hasBoth = Boolean(oddFile && evenFile);
+    btnSwap.disabled = processing || !hasBoth;
+    btnMerge.disabled = processing || !hasBoth || !filesAreValid;
+    evenOrder.disabled = processing;
+    rotateEven.disabled = processing;
+}
+
+function looksLikePdf(file, bytes) {
+    const signature = new TextDecoder().decode(bytes.slice(0, 5));
+    return file.name.toLowerCase().endsWith('.pdf') && signature === '%PDF-';
+}
+
 async function handleFile(file, type) {
-    const arrayBuffer = await file.arrayBuffer();
-    // ArrayBuffer를 Uint8Array로 복사하여 detach 방지
-    const bytes = new Uint8Array(arrayBuffer);
-    const fileData = { name: file.name, bytes };
+    try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (!looksLikePdf(file, bytes)) {
+            setStatus(t('invalidFile'), 'error');
+            return;
+        }
 
-    if (type === 'odd') {
-        oddFile = fileData;
-        oddFilename.textContent = file.name;
-        dropOdd.classList.add('has-file');
-    } else {
-        evenFile = fileData;
-        evenFilename.textContent = file.name;
-        dropEven.classList.add('has-file');
+        const fileData = { name: file.name, bytes };
+        if (type === 'odd') {
+            oddFile = fileData;
+            oddFilename.textContent = file.name;
+            dropOdd.classList.add('has-file');
+        } else {
+            evenFile = fileData;
+            evenFilename.textContent = file.name;
+            dropEven.classList.add('has-file');
+        }
+
+        filesAreValid = false;
+        cachedMergedBytes = null;
+        updateButtons();
+        await tryPreview();
+    } catch (error) {
+        console.error('File read error:', error);
+        setStatus(`${t('fileReadError')} ${error.message}`, 'error');
     }
-
-    updateButtons();
-    tryPreview();
 }
 
-function updateButtons() {
-    const hasBoth = oddFile && evenFile;
-    btnSwap.disabled = !hasBoth;
-    btnMerge.disabled = !hasBoth;
+function getMergeOptions() {
+    return { evenOrder: evenOrder.value, rotateEven: rotateEven.checked };
 }
 
-// ─── Preview ─────────────────────────────────────────────
 async function tryPreview() {
-    if (!oddFile || !evenFile) return;
+    const revision = ++previewRevision;
+    cachedMergedBytes = null;
+    filesAreValid = false;
+    previewScroll.replaceChildren();
 
-    // 페이지 수 확인 (복사본 사용)
-    const oddCount = await getPageCount(oddFile.bytes.slice());
-    const evenCount = await getPageCount(evenFile.bytes.slice());
-
-    if (oddCount !== evenCount) {
-        alert(`페이지 수가 일치하지 않습니다.\n홀수 PDF: ${oddCount}페이지\n짝수 PDF: ${evenCount}페이지`);
+    if (!oddFile || !evenFile) {
+        setPreviewState('empty');
+        setStatus('');
+        updateButtons();
         return;
     }
 
-    // 로딩 상태
-    previewEmpty.classList.add('hidden');
-    previewContainer.classList.add('hidden');
-    previewLoading.classList.remove('hidden');
+    setPreviewState('loading');
+    setStatus(t('checkingFiles'));
+    updateButtons(true);
 
     try {
-        // 병합 후 미리보기 생성 (복사본 사용)
-        const oddCopy = oddFile.bytes.slice();
-        const evenCopy = evenFile.bytes.slice();
-        const mergedBytes = await mergePdfs(oddCopy, evenCopy);
-        await renderPreview(mergedBytes, previewScroll, 200);
+        const [oddCount, evenCount] = await Promise.all([
+            getPageCount(oddFile.bytes.slice()),
+            getPageCount(evenFile.bytes.slice())
+        ]);
+        if (revision !== previewRevision) return;
 
-        previewLoading.classList.add('hidden');
-        previewContainer.classList.remove('hidden');
-    } catch (err) {
-        console.error('Preview error:', err);
-        previewLoading.classList.add('hidden');
-        previewEmpty.classList.remove('hidden');
-        alert('미리보기 생성 실패: ' + err.message);
+        if (oddCount !== evenCount && oddCount !== evenCount + 1) {
+            setPreviewState('empty');
+            setStatus(format('alertPageMismatch', { odd: oddCount, even: evenCount }), 'error');
+            updateButtons();
+            return;
+        }
+
+        setStatus(t('mergingPreview'));
+        const mergedBytes = await mergePdfs(oddFile.bytes.slice(), evenFile.bytes.slice(), getMergeOptions());
+        if (revision !== previewRevision) return;
+
+        const result = await renderPreview(mergedBytes.slice(), previewScroll, {
+            maxHeight: 200,
+            maxPages: 40,
+            shouldCancel: () => revision !== previewRevision,
+            onProgress: (current, visible) => {
+                if (revision === previewRevision) setStatus(format('previewProgress', { current, total: visible }));
+            }
+        });
+        if (revision !== previewRevision) return;
+
+        cachedMergedBytes = mergedBytes;
+        filesAreValid = true;
+        setPreviewState('ready');
+        const statusKey = result.totalPages > result.renderedPages ? 'readyLimited' : 'ready';
+        setStatus(format(statusKey, { total: result.totalPages, rendered: result.renderedPages }), 'success');
+    } catch (error) {
+        if (revision !== previewRevision) return;
+        console.error('Preview error:', error);
+        setPreviewState('empty');
+        setStatus(`${t('alertPreviewError')}${error.message}`, 'error');
+    } finally {
+        if (revision === previewRevision) updateButtons(false);
     }
 }
 
-// ─── Swap Files ──────────────────────────────────────────
 function swapFiles() {
     [oddFile, evenFile] = [evenFile, oddFile];
-
-    // UI 업데이트
-    oddFilename.textContent = oddFile?.name || '드래그하거나 클릭하세요';
-    evenFilename.textContent = evenFile?.name || '드래그하거나 클릭하세요';
-
-    dropOdd.classList.toggle('has-file', !!oddFile);
-    dropEven.classList.toggle('has-file', !!evenFile);
-
+    oddFilename.textContent = oddFile?.name || t('dropHint');
+    evenFilename.textContent = evenFile?.name || t('dropHint');
+    dropOdd.classList.toggle('has-file', Boolean(oddFile));
+    dropEven.classList.toggle('has-file', Boolean(evenFile));
     tryPreview();
 }
 
-// ─── Merge & Download ────────────────────────────────────
 async function mergeAndSave() {
-    if (!oddFile || !evenFile) return;
-
-    btnMerge.disabled = true;
-    btnMerge.textContent = '병합 중...';
-
+    if (!oddFile || !evenFile || !filesAreValid) return;
+    updateButtons(true);
+    btnMergeLabel.textContent = t('merging');
     try {
-        // 복사본 사용하여 병합
-        const oddCopy = oddFile.bytes.slice();
-        const evenCopy = evenFile.bytes.slice();
-        const mergedBytes = await mergePdfs(oddCopy, evenCopy);
-
-        // 파일명 생성: odd 파일명 기반
+        const mergedBytes = cachedMergedBytes || await mergePdfs(oddFile.bytes.slice(), evenFile.bytes.slice(), getMergeOptions());
         const baseName = oddFile.name.replace(/\.pdf$/i, '');
-        const outputName = `${baseName}_merged.pdf`;
-
-        downloadPdf(mergedBytes, outputName);
-    } catch (err) {
-        console.error('Merge error:', err);
-        alert('병합 실패: ' + err.message);
+        downloadPdf(mergedBytes, `${baseName}_merged.pdf`);
+        setStatus(t('downloadReady'), 'success');
+    } catch (error) {
+        console.error('Merge error:', error);
+        setStatus(`${t('alertMergeError')}${error.message}`, 'error');
     } finally {
-        btnMerge.disabled = false;
-        btnMerge.textContent = '🐱 병합 후 저장';
+        btnMergeLabel.textContent = t('mergeAndSave');
+        updateButtons(false);
     }
 }
 
-// ─── Drag & Drop Setup ───────────────────────────────────
 function setupDropZone(dropZone, inputEl, type) {
-    // 클릭하면 파일 선택
-    dropZone.addEventListener('click', () => inputEl.click());
-
-    // 파일 선택 시
-    inputEl.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) handleFile(file, type);
+    const openPicker = () => inputEl.click();
+    dropZone.addEventListener('click', openPicker);
+    dropZone.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openPicker();
+        }
     });
-
-    // 드래그 이벤트
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
+    inputEl.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) handleFile(file, type);
+        event.target.value = '';
+    });
+    dropZone.addEventListener('dragover', (event) => {
+        event.preventDefault();
         dropZone.classList.add('drag-over');
     });
-
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (event) => {
+        event.preventDefault();
         dropZone.classList.remove('drag-over');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-
-        const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') {
-            handleFile(file, type);
-        }
+        const file = event.dataTransfer.files[0];
+        if (file) handleFile(file, type);
     });
 }
 
-// ─── Event Listeners ─────────────────────────────────────
 setupDropZone(dropOdd, inputOdd, 'odd');
 setupDropZone(dropEven, inputEven, 'even');
 btnSwap.addEventListener('click', swapFiles);
 btnMerge.addEventListener('click', mergeAndSave);
+evenOrder.addEventListener('change', tryPreview);
+rotateEven.addEventListener('change', tryPreview);
+window.addEventListener('dragover', (event) => event.preventDefault());
+window.addEventListener('drop', (event) => event.preventDefault());
 
-// 전역 드래그 방지 (윈도우에 드롭 시 브라우저가 파일 열지 않도록)
-window.addEventListener('dragover', (e) => e.preventDefault());
-window.addEventListener('drop', (e) => e.preventDefault());
-
-// ─── Modal Handlers ──────────────────────────────────────
-const modalTerms = document.getElementById('modal-terms');
-const modalPrivacy = document.getElementById('modal-privacy');
-const btnTerms = document.getElementById('btn-terms');
-const btnPrivacy = document.getElementById('btn-privacy');
-
-btnTerms?.addEventListener('click', () => modalTerms.showModal());
-btnPrivacy?.addEventListener('click', () => modalPrivacy.showModal());
-
-// 닫기 버튼 및 배경 클릭으로 닫기
-document.querySelectorAll('.modal-close').forEach(btn => {
-    btn.addEventListener('click', () => {
-        modalTerms.close();
-        modalPrivacy.close();
+const modalTerms = byId('modal-terms');
+const modalPrivacy = byId('modal-privacy');
+byId('btn-terms')?.addEventListener('click', () => modalTerms.showModal());
+byId('btn-privacy')?.addEventListener('click', () => modalPrivacy.showModal());
+document.querySelectorAll('.modal-close').forEach((button) => {
+    button.addEventListener('click', () => button.closest('dialog')?.close());
+});
+[modalTerms, modalPrivacy].forEach((modal) => {
+    modal?.addEventListener('click', (event) => {
+        if (event.target === modal) modal.close();
     });
 });
 
-[modalTerms, modalPrivacy].forEach(modal => {
-    modal?.addEventListener('click', (e) => {
-        if (e.target === modal) modal.close();
-    });
-});
-
-// ─── i18n Setup ──────────────────────────────────────────
-const langToggle = document.getElementById('lang-toggle');
-const termsContent = document.getElementById('terms-content');
-const privacyContent = document.getElementById('privacy-content');
-
+const termsContent = byId('terms-content');
+const privacyContent = byId('privacy-content');
 function renderModalContent() {
-    const lang = getCurrentLang();
-    const terms = translations[lang].termsContent;
-    const privacy = translations[lang].privacyContent;
-
-    if (termsContent) {
-        termsContent.innerHTML = `
-            <h3 class="text-white font-semibold">${terms.section1Title}</h3>
-            <p>${terms.section1Text}</p>
-            
-            <h3 class="text-white font-semibold">${terms.section2Title}</h3>
-            <ul class="list-disc list-inside space-y-1">
-                ${terms.section2Items.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-            
-            <h3 class="text-white font-semibold">${terms.section3Title}</h3>
-            <ul class="list-disc list-inside space-y-1">
-                ${terms.section3Items.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-            
-            <h3 class="text-white font-semibold">${terms.section4Title}</h3>
-            <p>${terms.section4Text}</p>
-            
-            <h3 class="text-white font-semibold">${terms.section5Title}</h3>
-            <p>${terms.section5Text}</p>
-        `;
-    }
-
-    if (privacyContent) {
-        privacyContent.innerHTML = `
-            <h3 class="text-white font-semibold">${privacy.section1Title}</h3>
-            <p><strong class="text-green-400">${privacy.section1Highlight}</strong></p>
-            <p>${privacy.section1Text}</p>
-            
-            <h3 class="text-white font-semibold">${privacy.section2Title}</h3>
-            <ul class="list-disc list-inside space-y-1">
-                <li>${privacy.section2Items[0]}<strong class="text-cyan-400">${privacy.section2Items[1]}</strong>${privacy.section2Items[2]}</li>
-                <li>${privacy.section2Items[3]}</li>
-                <li>${privacy.section2Items[4]}</li>
-            </ul>
-            
-            <h3 class="text-white font-semibold">${privacy.section3Title}</h3>
-            <ul class="list-disc list-inside space-y-1">
-                ${privacy.section3Items.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-            
-            <h3 class="text-white font-semibold">${privacy.section4Title}</h3>
-            <p>${privacy.section4Text}</p>
-            
-            <h3 class="text-white font-semibold">${privacy.section5Title}</h3>
-            <p>${privacy.section5Text}</p>
-        `;
-    }
+    const { termsContent: terms, privacyContent: privacy } = translations[getCurrentLang()];
+    termsContent.innerHTML = `
+        <h3 class="text-white font-semibold">${terms.section1Title}</h3><p>${terms.section1Text}</p>
+        <h3 class="text-white font-semibold">${terms.section2Title}</h3><ul class="list-disc list-inside space-y-1">${terms.section2Items.map((item) => `<li>${item}</li>`).join('')}</ul>
+        <h3 class="text-white font-semibold">${terms.section3Title}</h3><ul class="list-disc list-inside space-y-1">${terms.section3Items.map((item) => `<li>${item}</li>`).join('')}</ul>
+        <h3 class="text-white font-semibold">${terms.section4Title}</h3><p>${terms.section4Text}</p>
+        <h3 class="text-white font-semibold">${terms.section5Title}</h3><p>${terms.section5Text}</p>`;
+    privacyContent.innerHTML = `
+        <h3 class="text-white font-semibold">${privacy.section1Title}</h3><p><strong class="text-green-400">${privacy.section1Highlight}</strong></p><p>${privacy.section1Text}</p>
+        <h3 class="text-white font-semibold">${privacy.section2Title}</h3><ul class="list-disc list-inside space-y-1"><li>${privacy.section2Items[0]}<strong class="text-cyan-400">${privacy.section2Items[1]}</strong>${privacy.section2Items[2]}</li><li>${privacy.section2Items[3]}</li><li>${privacy.section2Items[4]}</li></ul>
+        <h3 class="text-white font-semibold">${privacy.section3Title}</h3><ul class="list-disc list-inside space-y-1">${privacy.section3Items.map((item) => `<li>${item}</li>`).join('')}</ul>
+        <h3 class="text-white font-semibold">${privacy.section4Title}</h3><p>${privacy.section4Text}</p>
+        <h3 class="text-white font-semibold">${privacy.section5Title}</h3><p>${privacy.section5Text}</p>`;
 }
 
-langToggle?.addEventListener('click', () => {
-    const newLang = getCurrentLang() === 'en' ? 'ko' : 'en';
-    setLang(newLang);
+byId('lang-toggle')?.addEventListener('click', () => {
+    setLang(getCurrentLang() === 'en' ? 'ko' : 'en');
     renderModalContent();
+    oddFilename.textContent = oddFile?.name || t('dropHint');
+    evenFilename.textContent = evenFile?.name || t('dropHint');
+    btnMergeLabel.textContent = t('mergeAndSave');
+    if (oddFile && evenFile) tryPreview();
 });
 
-// Initialize i18n
 initI18n();
 renderModalContent();
+updateButtons();

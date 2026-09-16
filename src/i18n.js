@@ -1,33 +1,30 @@
-// i18n translations
 export const translations = {
     en: {
-        // Header
         subtitle: "Merge single-sided PDF scans into double-sided documents",
 
-        // Drop zones
         oddPages: "Odd Pages PDF",
         evenPages: "Even Pages PDF (Reversed)",
         dropHint: "Drag & drop or click to select",
 
-        // Buttons
         swapFiles: "Swap Odd/Even Files",
         mergeAndSave: "🐱 Merge & Save",
+        merging: "Merging...",
+        options: "Back-side options",
+        orderLabel: "Page order",
+        reverseOrder: "Reverse (typical ADF scan)",
+        forwardOrder: "Forward",
+        rotateEven: "Rotate back-side pages 180°",
 
-        // Info box
-        infoTip: "Even pages PDF is assumed to be scanned in ",
-        infoReverse: "reverse order",
+        infoTipFull: "Most ADF scans use reverse order. A final unmatched front page is supported.",
 
-        // Preview
         preview: "Preview",
         previewEmpty: "Select PDF files to see preview",
         previewLoading: "Generating preview...",
 
-        // Footer
         footerPrivacy: "All PDF processing happens in your browser. Files are never uploaded to any server. 🔒",
         terms: "Terms of Service",
         privacy: "Privacy Policy",
 
-        // Modals
         termsTitle: "📜 Terms of Service",
         termsContent: {
             section1Title: "1. Service Overview",
@@ -53,20 +50,20 @@ export const translations = {
         privacyTitle: "🔒 Privacy Policy",
         privacyContent: {
             section1Title: "1. Information We Collect",
-            section1Highlight: "We collect no personal information.",
-            section1Text: "MEOW PDF MERGER does not collect, store, or transmit any personal information.",
+            section1Highlight: "Your PDF contents never leave your browser.",
+            section1Text: "The app does not upload or store PDF contents. The hosting provider may process ordinary access data such as IP addresses and request metadata to deliver and protect the site.",
             section2Title: "2. How Files Are Processed",
             section2Items: [
                 "Uploaded PDF files are processed ",
                 "only in your browser",
                 ".",
                 "Files are never sent to any server and are not stored anywhere.",
-                "All data is immediately deleted when you close the browser."
+                "PDF data remains in browser memory only and is released when the page is refreshed or closed."
             ],
             section3Title: "3. Cookies & Tracking",
             section3Items: [
                 "This service does not use cookies.",
-                "No user behavior tracking (Analytics) is performed.",
+                "No user behavior analytics is performed.",
                 "No third-party ads or tracking scripts are used."
             ],
             section4Title: "4. Third-Party Sharing",
@@ -77,40 +74,45 @@ export const translations = {
 
         close: "Close",
 
-        // Alerts
         alertPageMismatch: "Page count mismatch.\nOdd PDF: {odd} pages\nEven PDF: {even} pages",
         alertPreviewError: "Preview generation failed: ",
-        alertMergeError: "Merge failed: "
+        alertMergeError: "Merge failed: ",
+        invalidFile: "Please select a valid PDF file.",
+        fileReadError: "Could not read the file:",
+        checkingFiles: "Checking PDF files...",
+        mergingPreview: "Preparing merged preview...",
+        previewProgress: "Rendering preview {current}/{total}",
+        ready: "Ready · {total} pages",
+        readyLimited: "Ready · showing {rendered} of {total} pages",
+        downloadReady: "Download started."
     },
 
     ko: {
-        // Header
         subtitle: "단면 스캔 PDF를 완벽한 양면 문서로 병합하세요",
 
-        // Drop zones
         oddPages: "홀수 페이지 PDF",
         evenPages: "짝수 페이지 PDF (역순)",
         dropHint: "드래그하거나 클릭하세요",
 
-        // Buttons
         swapFiles: "홀짝 파일 바꾸기",
         mergeAndSave: "🐱 병합 후 저장",
+        merging: "병합 중...",
+        options: "뒷면 옵션",
+        orderLabel: "페이지 순서",
+        reverseOrder: "역순 (일반적인 ADF 스캔)",
+        forwardOrder: "정순",
+        rotateEven: "뒷면 페이지 180° 회전",
 
-        // Info box
-        infoTip: "짝수 페이지 PDF는 ",
-        infoReverse: "역순",
+        infoTipFull: "일반적인 ADF 스캔은 역순입니다. 마지막 홀수 페이지에 뒷면이 없어도 병합할 수 있습니다.",
 
-        // Preview
         preview: "미리보기",
         previewEmpty: "PDF 파일을 선택하면 미리보기가 표시됩니다",
         previewLoading: "미리보기 생성 중...",
 
-        // Footer
         footerPrivacy: "모든 PDF 처리는 브라우저에서 수행됩니다. 파일이 서버로 전송되지 않습니다. 🔒",
         terms: "이용약관",
         privacy: "개인정보 처리방침",
 
-        // Modals
         termsTitle: "📜 이용약관",
         termsContent: {
             section1Title: "1. 서비스 개요",
@@ -136,15 +138,15 @@ export const translations = {
         privacyTitle: "🔒 개인정보 처리방침",
         privacyContent: {
             section1Title: "1. 수집하는 개인정보",
-            section1Highlight: "수집하는 개인정보가 없습니다.",
-            section1Text: "MEOW PDF MERGER는 어떠한 개인정보도 수집, 저장, 전송하지 않습니다.",
+            section1Highlight: "PDF 내용은 브라우저 밖으로 전송되지 않습니다.",
+            section1Text: "앱은 PDF 내용을 업로드하거나 저장하지 않습니다. 사이트 제공 및 보호를 위해 호스팅 사업자가 IP 주소와 요청 정보 같은 일반적인 접속 데이터를 처리할 수 있습니다.",
             section2Title: "2. 파일 처리 방식",
             section2Items: [
                 "업로드된 PDF 파일은 ",
                 "사용자의 브라우저에서만",
                 " 처리됩니다.",
                 "파일은 서버로 전송되지 않으며, 어디에도 저장되지 않습니다.",
-                "브라우저를 닫으면 모든 데이터가 즉시 삭제됩니다."
+                "PDF 데이터는 브라우저 메모리에만 머물며 페이지를 새로고침하거나 닫으면 해제됩니다."
             ],
             section3Title: "3. 쿠키 및 추적",
             section3Items: [
@@ -160,14 +162,21 @@ export const translations = {
 
         close: "닫기",
 
-        // Alerts
         alertPageMismatch: "페이지 수가 일치하지 않습니다.\n홀수 PDF: {odd}페이지\n짝수 PDF: {even}페이지",
         alertPreviewError: "미리보기 생성 실패: ",
-        alertMergeError: "병합 실패: "
+        alertMergeError: "병합 실패: ",
+        invalidFile: "올바른 PDF 파일을 선택해주세요.",
+        fileReadError: "파일을 읽을 수 없습니다:",
+        checkingFiles: "PDF 파일을 확인하는 중...",
+        mergingPreview: "병합 미리보기를 준비하는 중...",
+        previewProgress: "미리보기 렌더링 {current}/{total}",
+        ready: "준비 완료 · 총 {total}페이지",
+        readyLimited: "준비 완료 · 총 {total}페이지 중 {rendered}페이지 표시",
+        downloadReady: "다운로드를 시작했습니다."
     }
 };
 
-let currentLang = localStorage.getItem('lang') || 'en';
+let currentLang = localStorage.getItem('lang') || (navigator.language.startsWith('ko') ? 'ko' : 'en');
 
 export function getCurrentLang() {
     return currentLang;
@@ -184,6 +193,7 @@ export function t(key) {
 }
 
 export function applyTranslations() {
+    document.documentElement.lang = currentLang;
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (translations[currentLang][key]) {
@@ -191,24 +201,13 @@ export function applyTranslations() {
         }
     });
 
-    document.querySelectorAll('[data-i18n-html]').forEach(el => {
-        const key = el.getAttribute('data-i18n-html');
-        if (translations[currentLang][key]) {
-            el.innerHTML = translations[currentLang][key];
-        }
-    });
-
-    // Update lang toggle button
     const langBtn = document.getElementById('lang-toggle');
     if (langBtn) {
         langBtn.textContent = currentLang === 'en' ? '한국어' : 'English';
     }
 
-    // Dispatch event for dynamic content
-    document.dispatchEvent(new CustomEvent('langChanged', { detail: { lang: currentLang } }));
 }
 
-// Initialize on load
 export function initI18n() {
     applyTranslations();
 }
