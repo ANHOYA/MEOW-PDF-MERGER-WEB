@@ -1,112 +1,44 @@
-# MEOW PDF MERGER 🐱
+# MEOW PDF
 
-**단면 스캔 PDF를 완벽한 양면 문서로 병합하세요!**
+글래스 뉴모피즘 디자인의 무료 로컬 PDF 작업실. 문서 내용과 파일명을 서버로 전송하지 않고 브라우저에서 처리합니다.
 
-MEOW PDF MERGER는 단면 스캔만 지원하는 스캐너(ADF) 사용자를 위한 편리한 PDF 병합 도구입니다.  
-**100% 클라이언트 사이드** - 모든 PDF 처리가 브라우저에서 수행되어 파일이 서버로 전송되지 않습니다. 🔒
+[웹사이트](https://meow-pdf-merger-web.vercel.app/) · [제품 기획](docs/PRODUCT-PLAN.md) · [검색엔진 등록](docs/SEARCH-LAUNCH.md)
 
-<div align="center">
-<img width="100%" alt="MEOW PDF MERGER Web UI" src="public/screenshot.png" />
-</div>
+## 도구
 
----
+PDF 병합 / A4 일괄 변환(PDF·ZIP) / 페이지 추출·재정렬 / 페이지 삭제 / 회전 / JPG·PNG → PDF / 기존 양면 스캔 복원.
 
-## ✨ 주요 기능
+양면 스캔 복원은 앞면과 뒷면을 교차 병합하며, 뒷면 역순·정순 선택, 180도 회전, 마지막 홀수 페이지를 지원합니다.
 
-| 기능 | 설명 |
-|------|------|
-| 🖱️ **Drag & Drop** | 파일을 UI 위로 드래그하여 간편하게 등록 |
-| 👁️ **실시간 미리보기** | 병합 결과를 저장 전에 확인 |
-| 🔄 **홀짝 교체** | 파일을 잘못 넣었을 경우 즉시 교체 가능 |
-| ↕️ **페이지 순서 선택** | 짝수 페이지의 정순·역순을 선택 가능 |
-| 🔃 **뒷면 회전** | 짝수 페이지를 180° 회전하여 병합 가능 |
-| ✅ **페이지 수 검증** | 마지막 홀수 페이지에 뒷면이 없는 문서도 지원 |
-| 🔒 **100% 프라이버시** | PDF를 서버로 전송하지 않고 브라우저에서 처리 |
+## 개발
 
----
+Node.js 22.17 이상 권장.
 
-## 🚀 빠른 시작
-
-### 온라인 사용
-> 🌐 [바로 사용하기](https://meow-pdf-merger-web.vercel.app/)
-
-### 로컬 실행
-```bash
-# 저장소 클론
-git clone https://github.com/ANHOYA/MEOW-PDF-MERGER-WEB.git
-cd MEOW-PDF-MERGER-WEB
-
-# 의존성 설치
-npm install
-
-# 개발 서버 실행
+```sh
+npm ci
 npm run dev
-# → http://localhost:5173/
-```
-
----
-
-## 📖 사용 방법
-
-1. **홀수 페이지 PDF** (1, 3, 5...) 를 왼쪽 상단 영역에 드래그
-2. **짝수 페이지 PDF**를 왼쪽 하단 영역에 드래그
-3. 스캔 방식에 맞게 짝수 페이지 순서와 180° 회전 여부 선택
-4. 미리보기에서 페이지 순서 확인
-5. **"🐱 병합 후 저장"** 클릭하여 다운로드
-
-> 💡 **TIP**: 일반적인 ADF 뒷면 스캔은 역순이며, 필요하면 정순으로 변경할 수 있습니다.
-
----
-
-## 🛠️ 기술 스택
-
-| 구분 | 기술 |
-|------|------|
-| 빌드 | Vite |
-| 스타일 | Tailwind CSS |
-| PDF 조작 | pdf-lib |
-| PDF 렌더링 | pdfjs-dist |
-
-```
-📁 프로젝트 구조
-├── index.html          # 메인 HTML
-├── src/
-│   ├── main.js         # 앱 진입점
-│   ├── pdfMerger.js    # PDF 병합 로직
-│   ├── pdfPreview.js   # 미리보기 렌더링
-│   └── style.css       # 스타일
-├── tests/
-│   └── pdfMerger.test.js
-├── package.json
-└── vite.config.js
-```
-
----
-
-## 📦 빌드 & 배포
-
-```bash
-# 프로덕션 빌드
-npm run build
-
-# 빌드 결과 미리보기
-npm run preview
-
-# 병합 로직 테스트
 npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
-`dist/` 폴더를 GitHub Pages, Vercel, Netlify 등에 정적 호스팅하면 됩니다.
+`dist/`를 정적 호스팅합니다. Vercel 설정은 `vercel.json`에 포함되어 있습니다. `scripts/generate.mjs`가 페이지와 SEO 파일을 생성하므로 생성된 HTML을 직접 수정하지 말고 생성기와 `src/tools.js`를 수정하세요.
 
----
+환경변수: `SITE_URL`, `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`. 검색 등록용 토큰은 각 검색엔진 계정에서 발급해야 합니다.
 
-## ⚠️ 주의 사항
+## 개인정보와 제한
 
-- **암호화된 PDF**: 암호가 걸린 PDF는 병합이 실패할 수 있습니다.
-- **대용량 PDF**: 100MB 이상의 큰 파일은 브라우저 메모리 제한에 주의하세요.
+서버 업로드 API, 로그인, 분석·광고·추적 쿠키가 없습니다. 페이지 접속 자체에는 호스팅 요청과 로그가 발생할 수 있습니다. 파일은 메모리에서 처리하고 결과 다운로드만 기기에 저장합니다.
 
----
+메모리 보호를 위해 한 작업당 총 200 MB까지 선택할 수 있습니다. 기기에 따라 작은 파일도 처리되지 않을 수 있습니다. 암호화 PDF는 지원하지 않습니다. 편집 후 전자서명이 유효하지 않을 수 있고 A4 변환에서 링크·주석·편집 양식은 보존되지 않을 수 있습니다. 원본을 보관하고 결과를 확인하세요.
 
-## 📄 License
+현재 한국어 UI이며 기존 영어 번역 데이터는 보관됩니다. 가이드 RSS, 정책 독립 페이지, 사이트맵, 정적 메타데이터가 포함되어 있습니다. 검색엔진 계정의 소유권 인증·실제 제출은 별도입니다.
 
-MIT License
+## 기술과 검증
+
+Vite, pdf-lib, PDF.js, fflate. 처리 라이브러리는 작업 실행 시 지연 로드하고 PDF.js 워커는 자체 호스팅합니다. Node 테스트와 Playwright 브라우저 테스트를 제공합니다.
+
+![Desktop](docs/desktop.png)
+
+MIT License.

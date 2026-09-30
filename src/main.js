@@ -1,260 +1,61 @@
 import './style.css';
-import { mergePdfs, downloadPdf } from './pdfMerger.js';
-import { renderPreview, getPageCount } from './pdfPreview.js';
-import { translations, getCurrentLang, setLang, t, initI18n } from './i18n.js';
-
-let oddFile = null;
-let evenFile = null;
-let previewRevision = 0;
-let cachedMergedBytes = null;
-let filesAreValid = false;
-
-const byId = (id) => document.getElementById(id);
-const dropOdd = byId('drop-odd');
-const dropEven = byId('drop-even');
-const inputOdd = byId('input-odd');
-const inputEven = byId('input-even');
-const oddFilename = byId('odd-filename');
-const evenFilename = byId('even-filename');
-const btnSwap = byId('btn-swap');
-const btnMerge = byId('btn-merge');
-const btnMergeLabel = byId('btn-merge-label');
-const previewEmpty = byId('preview-empty');
-const previewContainer = byId('preview-container');
-const previewScroll = byId('preview-scroll');
-const previewLoading = byId('preview-loading');
-const previewStatus = byId('preview-status');
-const evenOrder = byId('even-order');
-const rotateEven = byId('rotate-even');
-
-function format(key, values = {}) {
-    return Object.entries(values).reduce(
-        (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
-        t(key)
-    );
+const workspace=document.querySelector('[data-tool]');
+if(workspace) init(workspace.dataset.tool);
+function init(type){
+ const $=id=>document.getElementById(id);
+ let files=[],busy=false,resultUrl=null,revision=0;
+ const status=(message,error=false)=>{$('status').textContent=message;$('status').dataset.error=String(error);};
+ function invalidate(){revision++;if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl=null;$('download').hidden=true;$('download').removeAttribute('href');$('preview').replaceChildren();}
+ function render(){
+  $('file-list').replaceChildren();
+  files.forEach((file,i)=>{
+   const row=document.createElement('div');row.className='file-row';
+   const info=document.createElement('div');info.className='file-info';
+   const name=document.createElement('strong');name.textContent=`${i+1}. ${file.name}`;
+   const size=document.createElement('small');size.textContent=`${(file.size/1024/1024).toFixed(2)} MB${type==='duplex'?(i===0?' · 앞면':' · 뒷면'):''}`;info.append(name,size);row.append(info);
+   for(const [label,text,disabled,action] of [['위로 이동','↑',i===0,()=>[files[i-1],files[i]]=[files[i],files[i-1]]],['아래로 이동','↓',i===files.length-1,()=>[files[i+1],files[i]]=[files[i],files[i+1]]],['삭제','×',false,()=>files.splice(i,1)]]){
+    const btn=document.createElement('button');btn.textContent=text;btn.setAttribute('aria-label',`${file.name} ${label}`);btn.disabled=busy||disabled;btn.onclick=()=>{action();invalidate();render();status('파일 목록이 변경되었습니다.');};row.append(btn);
+   }
+   $('file-list').append(row);
+  });
+  $('run').disabled=busy||!files.length||(type==='duplex'&&files.length!==2)||(type==='merge'&&files.length<2);
+  $('clear').disabled=busy||!files.length;$('choose').disabled=busy;$('files').disabled=busy;
+  workspace.querySelectorAll('.options input,.options select').forEach(e=>e.disabled=busy);
+ }
+ function add(incoming){
+  if(busy)return;
+  invalidate();
+  const pattern=type==='images'?/\.(jpe?g|png)$/i:/\.pdf$/i;
+  const list=Array.from(incoming);
+  if(list.some(f=>!pattern.test(f.name))){status(type==='images'?'JPG 또는 PNG 이미지만 선택해 주세요.':'PDF 파일만 선택해 주세요.',true);return;}
+  const next=[...files,...list];
+  if((['extract','delete','rotate'].includes(type)&&next.length>1)||(type==='duplex'&&next.length>2)){status(type==='duplex'?'앞면과 뒷면 PDF 두 파일만 선택해 주세요.':'먼저 목록을 지운 뒤 PDF 한 파일을 선택해 주세요.',true);return;}
+  // Practical memory guard, not a paid quota.
+  if(next.reduce((sum,f)=>sum+f.size,0)>200*1024*1024){status('안정적인 처리를 위해 한 번에 총 200 MB 이하로 나누어 주세요.',true);return;}
+  files=next;render();status(type==='merge'&&files.length===1?'병합할 PDF를 하나 더 선택해 주세요.':`${files.length}개 파일 선택됨 · 순서와 옵션을 확인하세요.`);
+ }
+ $('choose').onclick=()=>$('files').click();$('files').onchange=e=>{add(e.target.files);e.target.value='';};
+ const zone=$('dropzone');for(const event of ['dragenter','dragover'])zone.addEventListener(event,e=>{e.preventDefault();if(!busy)zone.classList.add('dragging');});
+ for(const event of ['dragleave','drop'])zone.addEventListener(event,e=>{e.preventDefault();zone.classList.remove('dragging');});
+ zone.addEventListener('drop',e=>add(e.dataTransfer.files));
+ window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>e.preventDefault());
+ $('clear').onclick=()=>{files=[];invalidate();render();status('모든 파일과 결과를 지웠습니다.');};
+ workspace.querySelectorAll('.options input,.options select').forEach(el=>el.addEventListener('input',()=>{invalidate();status('옵션이 변경되었습니다. 다시 실행해 주세요.');}));
+ $('run').onclick=async()=>{
+  if(busy)return;busy=true;invalidate();const token=revision;render();status('내 기기에서 처리 중입니다…');workspace.setAttribute('aria-busy','true');
+  try{
+   const {processFiles}=await import('./pdfTools.js');
+   const result=await processFiles(type,files,{pages:$('pages')?.value||'',angle:$('angle')?.value||90,orientation:$('orientation')?.value||'auto',margin:$('margin')?.value||0,evenOrder:$('even-order')?.value||'reverse',rotateEven:$('rotate-even')?.checked||false});
+   if(token!==revision)return;
+   const zip=result.name.endsWith('.zip');resultUrl=URL.createObjectURL(new Blob([result.bytes],{type:zip?'application/zip':'application/pdf'}));
+   $('download').href=resultUrl;$('download').download=result.name;$('download').hidden=false;
+   status(zip?'완료! 변환된 PDF들을 ZIP으로 다운로드하세요.':'완료! 결과를 다운로드할 수 있습니다. 미리보기를 준비합니다…');
+   if(!zip){
+    try{const {renderPreview}=await import('./pdfPreview.js');const r=await renderPreview(result.bytes.slice(),$('preview'),{maxHeight:180,maxPages:6,shouldCancel:()=>token!==revision});status(`완료 · 총 ${r.totalPages}페이지${r.totalPages>6?' · 처음 6페이지 미리보기':''}. 결과를 다운로드하세요.`);}
+    catch{status('파일 생성 완료. 미리보기를 표시할 수 없지만 결과를 다운로드할 수 있습니다.');}
+   }
+  }catch(error){status(/encrypt|password/i.test(error.message)?'암호화된 PDF는 지원하지 않습니다. 암호가 없는 원본을 선택해 주세요.':`처리하지 못했습니다. ${/페이지|파일|범위|형식/.test(error.message)?error.message:'파일 손상 또는 지원하지 않는 형식일 수 있습니다. 다른 파일로 시도해 주세요.'}`,true);}
+  finally{busy=false;workspace.removeAttribute('aria-busy');render();}
+ };
+ window.addEventListener('pagehide',()=>{if(resultUrl)URL.revokeObjectURL(resultUrl);});render();
 }
-
-function setStatus(message = '', tone = 'neutral') {
-    previewStatus.textContent = message;
-    previewStatus.dataset.tone = tone;
-    previewStatus.classList.toggle('hidden', !message);
-}
-
-function setPreviewState(state) {
-    previewEmpty.classList.toggle('hidden', state !== 'empty');
-    previewLoading.classList.toggle('hidden', state !== 'loading');
-    previewContainer.classList.toggle('hidden', state !== 'ready');
-}
-
-function updateButtons(processing = false) {
-    const hasBoth = Boolean(oddFile && evenFile);
-    btnSwap.disabled = processing || !hasBoth;
-    btnMerge.disabled = processing || !hasBoth || !filesAreValid;
-    evenOrder.disabled = processing;
-    rotateEven.disabled = processing;
-}
-
-function looksLikePdf(file, bytes) {
-    const signature = new TextDecoder().decode(bytes.slice(0, 5));
-    return file.name.toLowerCase().endsWith('.pdf') && signature === '%PDF-';
-}
-
-async function handleFile(file, type) {
-    try {
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        if (!looksLikePdf(file, bytes)) {
-            setStatus(t('invalidFile'), 'error');
-            return;
-        }
-
-        const fileData = { name: file.name, bytes };
-        if (type === 'odd') {
-            oddFile = fileData;
-            oddFilename.textContent = file.name;
-            dropOdd.classList.add('has-file');
-        } else {
-            evenFile = fileData;
-            evenFilename.textContent = file.name;
-            dropEven.classList.add('has-file');
-        }
-
-        filesAreValid = false;
-        cachedMergedBytes = null;
-        updateButtons();
-        await tryPreview();
-    } catch (error) {
-        console.error('File read error:', error);
-        setStatus(`${t('fileReadError')} ${error.message}`, 'error');
-    }
-}
-
-function getMergeOptions() {
-    return { evenOrder: evenOrder.value, rotateEven: rotateEven.checked };
-}
-
-async function tryPreview() {
-    const revision = ++previewRevision;
-    cachedMergedBytes = null;
-    filesAreValid = false;
-    previewScroll.replaceChildren();
-
-    if (!oddFile || !evenFile) {
-        setPreviewState('empty');
-        setStatus('');
-        updateButtons();
-        return;
-    }
-
-    setPreviewState('loading');
-    setStatus(t('checkingFiles'));
-    updateButtons(true);
-
-    try {
-        const [oddCount, evenCount] = await Promise.all([
-            getPageCount(oddFile.bytes.slice()),
-            getPageCount(evenFile.bytes.slice())
-        ]);
-        if (revision !== previewRevision) return;
-
-        if (oddCount !== evenCount && oddCount !== evenCount + 1) {
-            setPreviewState('empty');
-            setStatus(format('alertPageMismatch', { odd: oddCount, even: evenCount }), 'error');
-            updateButtons();
-            return;
-        }
-
-        setStatus(t('mergingPreview'));
-        const mergedBytes = await mergePdfs(oddFile.bytes.slice(), evenFile.bytes.slice(), getMergeOptions());
-        if (revision !== previewRevision) return;
-
-        const result = await renderPreview(mergedBytes.slice(), previewScroll, {
-            maxHeight: 200,
-            maxPages: 40,
-            shouldCancel: () => revision !== previewRevision,
-            onProgress: (current, visible) => {
-                if (revision === previewRevision) setStatus(format('previewProgress', { current, total: visible }));
-            }
-        });
-        if (revision !== previewRevision) return;
-
-        cachedMergedBytes = mergedBytes;
-        filesAreValid = true;
-        setPreviewState('ready');
-        const statusKey = result.totalPages > result.renderedPages ? 'readyLimited' : 'ready';
-        setStatus(format(statusKey, { total: result.totalPages, rendered: result.renderedPages }), 'success');
-    } catch (error) {
-        if (revision !== previewRevision) return;
-        console.error('Preview error:', error);
-        setPreviewState('empty');
-        setStatus(`${t('alertPreviewError')}${error.message}`, 'error');
-    } finally {
-        if (revision === previewRevision) updateButtons(false);
-    }
-}
-
-function swapFiles() {
-    [oddFile, evenFile] = [evenFile, oddFile];
-    oddFilename.textContent = oddFile?.name || t('dropHint');
-    evenFilename.textContent = evenFile?.name || t('dropHint');
-    dropOdd.classList.toggle('has-file', Boolean(oddFile));
-    dropEven.classList.toggle('has-file', Boolean(evenFile));
-    tryPreview();
-}
-
-async function mergeAndSave() {
-    if (!oddFile || !evenFile || !filesAreValid) return;
-    updateButtons(true);
-    btnMergeLabel.textContent = t('merging');
-    try {
-        const mergedBytes = cachedMergedBytes || await mergePdfs(oddFile.bytes.slice(), evenFile.bytes.slice(), getMergeOptions());
-        const baseName = oddFile.name.replace(/\.pdf$/i, '');
-        downloadPdf(mergedBytes, `${baseName}_merged.pdf`);
-        setStatus(t('downloadReady'), 'success');
-    } catch (error) {
-        console.error('Merge error:', error);
-        setStatus(`${t('alertMergeError')}${error.message}`, 'error');
-    } finally {
-        btnMergeLabel.textContent = t('mergeAndSave');
-        updateButtons(false);
-    }
-}
-
-function setupDropZone(dropZone, inputEl, type) {
-    const openPicker = () => inputEl.click();
-    dropZone.addEventListener('click', openPicker);
-    dropZone.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            openPicker();
-        }
-    });
-    inputEl.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) handleFile(file, type);
-        event.target.value = '';
-    });
-    dropZone.addEventListener('dragover', (event) => {
-        event.preventDefault();
-        dropZone.classList.add('drag-over');
-    });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', (event) => {
-        event.preventDefault();
-        dropZone.classList.remove('drag-over');
-        const file = event.dataTransfer.files[0];
-        if (file) handleFile(file, type);
-    });
-}
-
-setupDropZone(dropOdd, inputOdd, 'odd');
-setupDropZone(dropEven, inputEven, 'even');
-btnSwap.addEventListener('click', swapFiles);
-btnMerge.addEventListener('click', mergeAndSave);
-evenOrder.addEventListener('change', tryPreview);
-rotateEven.addEventListener('change', tryPreview);
-window.addEventListener('dragover', (event) => event.preventDefault());
-window.addEventListener('drop', (event) => event.preventDefault());
-
-const modalTerms = byId('modal-terms');
-const modalPrivacy = byId('modal-privacy');
-byId('btn-terms')?.addEventListener('click', () => modalTerms.showModal());
-byId('btn-privacy')?.addEventListener('click', () => modalPrivacy.showModal());
-document.querySelectorAll('.modal-close').forEach((button) => {
-    button.addEventListener('click', () => button.closest('dialog')?.close());
-});
-[modalTerms, modalPrivacy].forEach((modal) => {
-    modal?.addEventListener('click', (event) => {
-        if (event.target === modal) modal.close();
-    });
-});
-
-const termsContent = byId('terms-content');
-const privacyContent = byId('privacy-content');
-function renderModalContent() {
-    const { termsContent: terms, privacyContent: privacy } = translations[getCurrentLang()];
-    termsContent.innerHTML = `
-        <h3 class="text-white font-semibold">${terms.section1Title}</h3><p>${terms.section1Text}</p>
-        <h3 class="text-white font-semibold">${terms.section2Title}</h3><ul class="list-disc list-inside space-y-1">${terms.section2Items.map((item) => `<li>${item}</li>`).join('')}</ul>
-        <h3 class="text-white font-semibold">${terms.section3Title}</h3><ul class="list-disc list-inside space-y-1">${terms.section3Items.map((item) => `<li>${item}</li>`).join('')}</ul>
-        <h3 class="text-white font-semibold">${terms.section4Title}</h3><p>${terms.section4Text}</p>
-        <h3 class="text-white font-semibold">${terms.section5Title}</h3><p>${terms.section5Text}</p>`;
-    privacyContent.innerHTML = `
-        <h3 class="text-white font-semibold">${privacy.section1Title}</h3><p><strong class="text-green-400">${privacy.section1Highlight}</strong></p><p>${privacy.section1Text}</p>
-        <h3 class="text-white font-semibold">${privacy.section2Title}</h3><ul class="list-disc list-inside space-y-1"><li>${privacy.section2Items[0]}<strong class="text-cyan-400">${privacy.section2Items[1]}</strong>${privacy.section2Items[2]}</li><li>${privacy.section2Items[3]}</li><li>${privacy.section2Items[4]}</li></ul>
-        <h3 class="text-white font-semibold">${privacy.section3Title}</h3><ul class="list-disc list-inside space-y-1">${privacy.section3Items.map((item) => `<li>${item}</li>`).join('')}</ul>
-        <h3 class="text-white font-semibold">${privacy.section4Title}</h3><p>${privacy.section4Text}</p>
-        <h3 class="text-white font-semibold">${privacy.section5Title}</h3><p>${privacy.section5Text}</p>`;
-}
-
-byId('lang-toggle')?.addEventListener('click', () => {
-    setLang(getCurrentLang() === 'en' ? 'ko' : 'en');
-    renderModalContent();
-    oddFilename.textContent = oddFile?.name || t('dropHint');
-    evenFilename.textContent = evenFile?.name || t('dropHint');
-    btnMergeLabel.textContent = t('mergeAndSave');
-    if (oddFile && evenFile) tryPreview();
-});
-
-initI18n();
-renderModalContent();
-updateButtons();

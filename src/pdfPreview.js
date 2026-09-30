@@ -18,6 +18,7 @@ export async function renderPreview(pdfBytes, container, options = {}) {
     const numPages = pdf.numPages;
     const pagesToRender = Math.min(numPages, maxPages);
 
+    try {
     for (let pageNum = 1; pageNum <= pagesToRender; pageNum++) {
         if (shouldCancel()) break;
         const page = await pdf.getPage(pageNum);
@@ -50,8 +51,10 @@ export async function renderPreview(pdfBytes, container, options = {}) {
         page.cleanup();
     }
 
-    await pdf.destroy();
     return { renderedPages: pagesToRender, totalPages: numPages };
+    } finally {
+        await pdf.destroy();
+    }
 }
 
 export async function getPageCount(pdfBytes) {

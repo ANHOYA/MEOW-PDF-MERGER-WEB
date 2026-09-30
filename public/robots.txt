@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://meow-pdf-merger-web.vercel.app/sitemap.xml
