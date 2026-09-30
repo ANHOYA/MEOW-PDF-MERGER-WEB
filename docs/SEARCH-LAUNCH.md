@@ -35,3 +35,22 @@ Google 및 네이버 콘솔의 로그인 세션에서 이 도메인의 소유권
 - 네이버 RSS/사이트맵: https://searchadvisor.naver.com/guide/request-feed
 - Google 소유권 인증: https://support.google.com/webmasters/answer/9008080
 - Bing: https://www.bing.com/webmasters/help/add-and-verify-site-12184f8b
+
+## 실행 기록 · 2026-10-01
+
+- GitHub main 구현 커밋: `b03cb9b`.
+- Vercel 실제 사이트에서 새 디자인, Google/네이버 인증 메타태그 확인.
+- Google Search Console: HTML 태그 소유권 인증 완료. `sitemap.xml` 제출 결과 **성공**, 발견된 페이지 **15개** 확인.
+- 네이버 Search Advisor: 소유확인 완료. `sitemap.xml` 등록 목록 확인(2026-10-01).
+- 네이버 RSS: URL 입력 및 제출 요청 후 보안문자 확인 대기. 등록 완료로 표시하지 않음.
+- Bing: Google 계정의 이름·프로필 사진·이메일 제공에 대한 사용자 동의 대기. 아직 등록하지 않음.
+- 검색결과 노출 및 전체 페이지 색인은 별도 처리이며, 이 기록은 색인 완료를 의미하지 않음.
+
+## 기술 검증 결과
+
+- 단위 테스트 14개 통과, Chromium 브라우저 테스트 4개 통과.
+- npm audit: 0 vulnerabilities.
+- 실제 배포에서 CSP 응답 헤더가 있는 상태로 A4 변환·1페이지 미리보기 성공, 페이지 오류 및 외부/비-GET 요청 없음.
+- RSS·사이트맵·robots·정책 페이지 HTTP 200, 존재하지 않는 경로 HTTP 404.
+- 15개 페이지의 H1·description·canonical 및 RSS 3개 가이드의 XML 파싱 확인.
+- Firefox 및 실제 iOS Safari는 이번 실행에서 검증하지 않음.
